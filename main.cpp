@@ -1,11 +1,9 @@
-#include <iostream>
-
-using namespace std;
+#include "Game.h"
 
 int main()
 {
-    cout << "Dodge Game started!" << endl;
-    cout << "This is my laboratory project." << endl;
+    Game game;
+    game.run();
 
     return 0;
 }
