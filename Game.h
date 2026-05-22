@@ -23,6 +23,7 @@ public:
 
 private:
     void draw();
+    bool handleAvailableInput();
     void handleInput(char command);
     void update();
     void addObstacle();

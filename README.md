@@ -13,6 +13,8 @@ The player must avoid falling obstacles.
 - `s` — stay
 - `q` — quit
 
+Commands are read immediately, so pressing Enter is not required.
+
 ## Build
 
 cmake -B build
