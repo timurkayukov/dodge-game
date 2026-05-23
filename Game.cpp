@@ -1,53 +1,7 @@
 #include "Game.h"
-#include <chrono>
 #include <cstdlib>
 #include <ctime>
 #include <iostream>
-#include <thread>
-#include <termios.h>
-#include <unistd.h>
-
-namespace
-{
-class TerminalInputMode
-{
-public:
-    TerminalInputMode()
-    {
-        enabled = isatty(STDIN_FILENO);
-
-        if (!enabled)
-        {
-            return;
-        }
-
-        if (tcgetattr(STDIN_FILENO, &oldSettings) != 0)
-        {
-            enabled = false;
-            return;
-        }
-
-        termios newSettings = oldSettings;
-        newSettings.c_lflag &= ~(ICANON | ECHO);
-        newSettings.c_cc[VMIN] = 0;
-        newSettings.c_cc[VTIME] = 0;
-
-        tcsetattr(STDIN_FILENO, TCSANOW, &newSettings);
-    }
-
-    ~TerminalInputMode()
-    {
-        if (enabled)
-        {
-            tcsetattr(STDIN_FILENO, TCSANOW, &oldSettings);
-        }
-    }
-
-private:
-    bool enabled = false;
-    termios oldSettings{};
-};
-}
 
 using namespace std;
 
@@ -64,15 +18,10 @@ Game::Game() : player(5, 9)
 
 void Game::run()
 {
-    const chrono::milliseconds frameDelay(500);
-    TerminalInputMode terminalInputMode;
-
     draw();
 
     while (!gameOver)
     {
-        this_thread::sleep_for(frameDelay);
-
         if (handleAvailableInput())
         {
             cout << "Game closed." << endl;
@@ -98,7 +47,7 @@ void Game::draw()
 {
     cout << "\033[2J\033[H";
     cout << "Score: " << score << endl;
-    cout << "Command (a-left, d-right, s-stay, q-quit): " << endl;
+    cout << "Command: a-left, d-right, s-stay, q-quit" << endl;
 
     for (int y = 0; y < height; y++)
     {
@@ -135,30 +84,23 @@ void Game::draw()
 
 bool Game::handleAvailableInput()
 {
-    char buffer[128];
-    ssize_t count = read(STDIN_FILENO, buffer, sizeof(buffer));
-    bool movedThisFrame = false;
+    char command;
 
-    if (count <= 0)
+    cout << "Enter command: ";
+    cin >> command;
+
+    if (!cin)
     {
-        return false;
+        gameOver = true;
+        return true;
     }
 
-    for (ssize_t i = 0; i < count; i++)
+    if (command == 'q')
     {
-        char command = buffer[i];
-
-        if (command == 'q')
-        {
-            return true;
-        }
-
-        if (!movedThisFrame && (command == 'a' || command == 'd'))
-        {
-            handleInput(command);
-            movedThisFrame = true;
-        }
+        return true;
     }
+
+    handleInput(command);
 
     return false;
 }
